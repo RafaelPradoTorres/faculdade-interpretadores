@@ -1,0 +1,12 @@
+PRINCIPAL (INT variavel) {
+    int i;
+    ENQUANTO (i >= 2) {
+        CAR caractere = "Oiê :)";
+        INT inteiro = 1234;
+        FLUT flutuante = 12.34;
+
+
+
+    }
+
+}
