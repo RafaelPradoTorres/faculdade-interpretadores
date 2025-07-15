@@ -1,6 +1,9 @@
 package compilador;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -8,6 +11,7 @@ import java.util.List;
 
 
 public class ComDor {
+    static boolean teveErro = false;
 
     public static void main(String[] args) throws IOException{
 
@@ -15,19 +19,11 @@ public class ComDor {
 
         //Ler o arquivo inteiro
         if (args.length == 1){
-            System.out.println("Vou ler o documento completo para você");
-
-            String arquivo = toString(args[0]);
-            scanner = new Scanner(arquivo);
-
-            List<Token> tokens = scanner.escanearTokens();
-
-            for (Token token : tokens)
-                System.out.println(token.tipo + " - " + token.lexema + " - " + token.literal);
-            System.out.println("Linhas totais: " + scanner.getLinha());
+            System.out.println("1 argumento - vou ler arquivo");
+            rodarArquivo(args[0]);
         } else if (args.length == 0){
-            System.out.println("Hum... talvez eu leia linha por linha... digite no prompt");
-            // Rodar por prompt
+            System.out.println("0 argumentos - iniciarei o prompt");
+            rodarPrompt();
         } else {
             System.out.println("kkkkkk, ô emocionado!!! só aceitamos 0 ou 1 argumento para executar o compilador.");
             System.exit(24);
@@ -36,9 +32,52 @@ public class ComDor {
 
     // Função para ler o arquivo
     // Receber o nome do arquivo como string, encontrar o endereço e ler o arquivo
-    private static void rodar(String enderecoArquivo) throws IOException{
-        String conteudo = new String(Files.readAllBytes(Paths.get(enderecoArquivo)));
-        System.out.println(conteudo);
+    private static void rodar(String fonte) {
+        Scanner escaner = new Scanner(fonte);
+        List<Token> tokens = escaner.escanearTokens();
+        Parser parser = new Parser(tokens);
+        Expr expressao = parser.parse();
+
+        if (teveErro) return;
+
+        System.out.println(new ImpressorAST().imprimir(expressao));
+    }
+
+    private static void rodarArquivo(String enderecoArquivo) throws IOException{
+        byte[] bytes = Files.readAllBytes(Paths.get(enderecoArquivo));
+        rodar(new String(bytes, Charset.defaultCharset()));
+
+        if (teveErro) System.exit(444);
+    }
+
+    private static void rodarPrompt() throws IOException {
+        InputStreamReader input = new InputStreamReader(System.in);
+        BufferedReader leitor = new BufferedReader(input);
+
+        for (;;) {
+            System.out.print("(｡•̀ᴗ-)✧ ");
+            String linha = leitor.readLine();
+            if (linha == null) break;
+            rodar(linha);
+            teveErro = false;
+        }
+    }
+
+    static void erro(int linha, String mensagem) {
+        reportar(linha, "", mensagem);
+    }
+
+    private  static void reportar(int linha, String onde, String mensagem) {
+        System.err.println("[Linha " + linha + "] " + "Erro " + onde + ": " + mensagem);
+        teveErro = true;
+    }
+
+    static void erro(Token token, String mensagem) {
+        if (token.tipo == TipoToken.t_eof) {
+            reportar(token.linha, " no fim", mensagem);
+        } else {
+            reportar(token.linha, " em '" + token.lexema + "'", mensagem);
+        }
     }
 
     private static String toString(String enderecoArquivo) throws IOException{
