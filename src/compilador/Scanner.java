@@ -22,7 +22,7 @@ public class Scanner {
             Map.entry("SE",         t_if),
             Map.entry("SENAO",      t_else),
             Map.entry("ENQUANTO",   t_while),
-            Map.entry("IMPRIME",    t_print),
+            Map.entry("IMPRIMA",    t_print),
             Map.entry("INT",        t_int),
             Map.entry("FLUT",       t_float),
             Map.entry("CAR",        t_char),

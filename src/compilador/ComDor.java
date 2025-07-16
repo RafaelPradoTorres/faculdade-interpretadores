@@ -11,7 +11,9 @@ import java.util.List;
 
 
 public class ComDor {
+    private static final Interpreter interpretador = new Interpreter();
     static boolean teveErro = false;
+    static boolean teveErroTempoDeExec = false;
 
     public static void main(String[] args) throws IOException{
 
@@ -36,11 +38,16 @@ public class ComDor {
         Scanner escaner = new Scanner(fonte);
         List<Token> tokens = escaner.escanearTokens();
         Parser parser = new Parser(tokens);
-        Expr expressao = parser.parse();
+        List<Inst> instrucoes = parser.parse();
 
         if (teveErro) return;
 
-        System.out.println(new ImpressorAST().imprimir(expressao));
+        Resolvedor resolvedor = new Resolvedor(interpretador);
+        resolvedor.resolver(instrucoes);
+
+        if (teveErro) return;
+
+        interpretador.interpretar(instrucoes);
     }
 
     private static void rodarArquivo(String enderecoArquivo) throws IOException{
@@ -48,6 +55,7 @@ public class ComDor {
         rodar(new String(bytes, Charset.defaultCharset()));
 
         if (teveErro) System.exit(444);
+        if (teveErroTempoDeExec) System.exit(888);
     }
 
     private static void rodarPrompt() throws IOException {
@@ -78,6 +86,11 @@ public class ComDor {
         } else {
             reportar(token.linha, " em '" + token.lexema + "'", mensagem);
         }
+    }
+
+    static  void erroTempoDeExecucao(ErroTempoDeExec erro) {
+        System.err.println(erro.getMessage() + "\n[linha " + erro.token.linha + "]");
+        teveErroTempoDeExec = true;
     }
 
     private static String toString(String enderecoArquivo) throws IOException{

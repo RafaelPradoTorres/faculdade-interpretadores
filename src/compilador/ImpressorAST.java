@@ -16,7 +16,7 @@ public class ImpressorAST implements Expr.Visitante<String> {
     }
 
     @Override
-    public String visitarExprChamada(Expr.Chamada expr) {
+    public String visitarExprChamar(Expr.Chamar expr) {
         return null;
     }
 
