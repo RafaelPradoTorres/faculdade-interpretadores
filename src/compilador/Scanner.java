@@ -36,7 +36,8 @@ public class Scanner {
             Map.entry("NULO",       t_null),
             Map.entry("SUPER",      t_super),
             Map.entry("ESTE",       t_this),
-            Map.entry("VAZIO",      t_void)
+            Map.entry("VAZIO",      t_void),
+            Map.entry("VAR",        t_var)
     );
 
     private final String codigo_fonte;
@@ -51,6 +52,17 @@ public class Scanner {
 
     Scanner(String codigo_fonte){
         this.codigo_fonte = codigo_fonte;
+    }
+
+    public void imprimirTokens() {
+        System.out.println("=== TOKENS ===");
+        for (Token t : tokens) {
+            System.out.printf("%-15s %-10s literal=%s linha=%d\n",
+                    t.tipo, t.lexema,
+                    t.literal != null ? t.literal : "",
+                    t.linha);
+        }
+        System.out.println("==============");
     }
 
 
@@ -82,10 +94,10 @@ public class Scanner {
         switch (c){
             case '(': inserirToken(t_openParenthesis, null); break;
             case ')': inserirToken(t_closeParenthesis, null); break;
-            case '[': inserirToken(t_openBrace, null); break;
-            case ']': inserirToken(t_closeBrace, null); break;
-            case '{': inserirToken(t_openBracket, null); break;
-            case '}': inserirToken(t_closeBracket, null); break;
+            case '[': inserirToken(t_openBracket, null); break;
+            case ']': inserirToken(t_closeBracket, null); break;
+            case '{': inserirToken(t_openBrace, null); break;
+            case '}': inserirToken(t_closeBrace, null); break;
             case ',': inserirToken(t_comma, null); break;
             case '.': inserirToken(t_dot, null);  break;
             case '-': inserirToken(t_sub, null); break;

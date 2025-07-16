@@ -50,7 +50,7 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
         if (expr.operador.tipo == TipoToken.t_or) {
             if (isVerdade(esquerda)) return esquerda;
         } else {
-            if (isVerdade(esquerda)) return esquerda;
+            if (!isVerdade(esquerda)) return esquerda;
         }
 
         return avaliar(expr.direita);
@@ -115,6 +115,17 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
         } else {
             return globais.pegar(nome);
         }
+    }
+
+    @Override
+    public Void visitarInstSe(Inst.Se inst) {
+        Object condicao = avaliar(inst.condicao);
+        if (isVerdade(condicao)) {
+            executar(inst.ramoEntao);
+        } else if (inst.ramoSenao != null) {
+            executar(inst.ramoSenao);
+        }
+        return null;
     }
 
     @Override

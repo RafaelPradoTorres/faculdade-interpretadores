@@ -42,15 +42,21 @@ public class Environment {
     void definir(String nome, Object valor) {
         valores.put(nome, valor);
     }
-    Environment ancestral (int distancia) {
+    Environment ancestral(int distancia) {
         Environment ambiente = this;
         for (int i = 0; i < distancia; i++) {
+            if (ambiente.fechamento == null) {
+                // Não existe escopo tão “acima” — pare aqui
+                return ambiente;
+            }
             ambiente = ambiente.fechamento;
         }
         return ambiente;
     }
     Object pegarEm(int distancia, String nome) {
-        return ancestral(distancia).valores.get(nome);
+        Environment alvo = ancestral(distancia);
+        // Agora `alvo` nunca será null.
+        return alvo.valores.get(nome);
     }
     void atribuirEm(int distancia, Token nome, Object valor) {
         ancestral(distancia).valores.put(nome.lexema, valor);

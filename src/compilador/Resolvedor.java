@@ -28,9 +28,16 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
     private TipoClasse classeAtual = TipoClasse.NADA;
 
     void resolver(List<Inst> instancias) {
+        // Empurra o escopo “global” vazio para que
+        // escopos.peek() nunca esteja em uma pilha vazia
+        iniciarEscopo();
+
         for (Inst instancia : instancias) {
             resolver(instancia);
         }
+
+        // Fecha o escopo global (opcional)
+        finalizarEscopo();
     }
     private void resolver(Inst inst) {
         inst.aceita(this);
@@ -163,7 +170,8 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
 
     @Override
     public Void visitarExprVariavel(Expr.Variavel expr) {
-        if (!escopos.peek().get(expr.nome.lexema) == Boolean.FALSE) {
+        if (escopos.peek().containsKey(expr.nome.lexema) &&
+                escopos.peek().get(expr.nome.lexema) == Boolean.FALSE) {
             ComDor.erro(expr.nome, "Nao posso ler variavel local em seu proprio inicializador");
         }
 

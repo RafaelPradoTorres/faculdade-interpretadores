@@ -48,6 +48,17 @@ public class ComDor {
         if (teveErro) return;
 
         interpretador.interpretar(instrucoes);
+//
+//        Scanner escaner = new Scanner(fonte);
+//        List<Token> tokens = escaner.escanearTokens();
+//        // DEBUG: mostre todos os tokens antes do parser
+//        escaner.imprimirTokens();
+//
+//        Parser parser = new Parser(tokens);
+//        List<Inst> instrucoes = parser.parse();
+
+
+
     }
 
     private static void rodarArquivo(String enderecoArquivo) throws IOException{

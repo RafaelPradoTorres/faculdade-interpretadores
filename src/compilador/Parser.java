@@ -344,7 +344,15 @@ public class Parser {
         if (corresponde(t_true)) return new Expr.Literal(true);
         if (corresponde(t_null)) return new Expr.Literal(null);
 
-        if (corresponde(ter_integer, ter_string)) {
+        if (corresponde(ter_integer)) {
+            return new Expr.Literal(((String)anterior().literal).contains(".")
+                    ? Double.parseDouble(anterior().literal.toString())
+                    : Integer.parseInt(anterior().literal.toString()));
+        }
+        if (corresponde(ter_float)) {
+            return new Expr.Literal(Double.parseDouble(anterior().lexema));
+        }
+        if (corresponde(ter_string)) {
             return new Expr.Literal(anterior().literal);
         }
 
