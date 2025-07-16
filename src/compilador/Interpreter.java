@@ -69,6 +69,22 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
         return valor;
     }
     @Override
+    public Object visitarExprSuper(Expr.Super expr) {
+        int distancia = locais.get(expr);
+        ClasseComDor superclasse = (ClasseComDor)ambiente.pegarEm(distancia, "super");
+
+        InstanciaComDor objeto = (InstanciaComDor)ambiente.pegarEm(distancia - 1, "este");
+
+        FuncaoComDor metodo = superclasse.buscarMetodo(expr.metodo.lexema);
+
+        if (metodo == null) {
+            throw new ErroTempoDeExec(expr.metodo, "propriedade nao definida '" +
+                    expr.metodo.lexema + "'.");
+        }
+
+        return metodo.vincular(objeto);
+    }
+    @Override
     public Object visitarExprEste(Expr.Este expr) {
         return buscarVariavel(expr.palavra_chave, expr);
     }
@@ -113,6 +129,11 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
 
         ambiente.definir(inst.nome.lexema, null);
 
+        if(inst.superclasse != null) {
+            ambiente = new Environment(ambiente);
+            ambiente.definir("super", superclasse);
+        }
+
         Map<String, FuncaoComDor> metodos = new HashMap<>();
         for (Inst.Funcao metodo : inst.metodos) {
             FuncaoComDor funcao = new FuncaoComDor(metodo, ambiente,
@@ -122,6 +143,10 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
         }
 
         ClasseComDor classe = new ClasseComDor(inst.nome.lexema, (ClasseComDor)superclasse, metodos);
+
+        if (superclasse != null) {
+            ambiente = ambiente.fechamento;
+        }
 
         ambiente.atribuir(inst.nome, classe);
         return null;

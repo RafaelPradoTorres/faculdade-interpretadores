@@ -215,7 +215,7 @@ public class Parser {
                 return new Expr.Atribuicao(nome, valor);
             } else if (expr instanceof Expr.Pegar) {
                 Expr.Pegar pegar = (Expr.Pegar)expr;
-                return new Expr.Pegar(pegar.objeto, pegar.nome, valor);
+                return new Expr.Por(pegar.objeto, pegar.nome, valor);
             }
 
             erro(iguais, "Atribuicao invalida.");

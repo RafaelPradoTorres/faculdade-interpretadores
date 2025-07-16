@@ -21,7 +21,8 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
     }
     private enum TipoClasse {
         NADA,
-        CLASSE
+        CLASSE,
+        SUBCLASSE
     }
 
     private TipoClasse classeAtual = TipoClasse.NADA;
@@ -73,7 +74,13 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
         }
 
         if (inst.superclasse != null) {
+            classeAtual = TipoClasse.SUBCLASSE;
             resolver(inst.superclasse);
+        }
+
+        if (inst.superclasse != null) {
+            iniciarEscopo();
+            escopos.peek().put("super", true);
         }
 
         iniciarEscopo();
@@ -89,6 +96,8 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
         }
 
         finalizarEscopo();
+
+        if (inst.superclasse != null) finalizarEscopo();
 
         classeAtual = classeEncapsuladora;
         return null;
@@ -208,6 +217,17 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
     public Void visitarExprPor(Expr.Por expr) {
         resolver(expr.valor);
         resolver(expr.objeto);
+        return null;
+    }
+    @Override
+    public Void visitarExprSuper(Expr.Super expr) {
+        if (classeAtual == TipoClasse.NADA) {
+            ComDor.erro(expr.palavra_chave, "nao pode usar 'super' fora de uma classe.");
+        } else if (classeAtual != TipoClasse.SUBCLASSE) {
+            ComDor.erro(expr.palavra_chave, "nao pode usar 'super' em uma classe sem superclasses.");
+        }
+
+        resolverLocal(expr, expr.palavra_chave);
         return null;
     }
     @Override

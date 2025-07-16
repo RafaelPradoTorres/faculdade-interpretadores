@@ -82,22 +82,6 @@ abstract class Inst {
         final Inst ramoEntao;
         final Inst ramoSenao;
     }
-    static class Logica extends Inst {
-        Logica(Expr esquerda, Token operador, Expr direita) {
-            this.esquerda = esquerda;
-            this.operador = operador;
-            this.direita = direita;
-        }
-
-        @Override
-        <R> R aceita(Visitante<R> visitante) {
-            return visitante.visitarExprLogica(this);
-        }
-
-        final Expr esquerda;
-        final Token operador;
-        final Expr direita;
-    }
     static class Enquanto extends Inst {
         Enquanto(Expr condicao, Inst corpo) {
             this.condicao = condicao;
