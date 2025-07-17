@@ -71,9 +71,9 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
     @Override
     public Object visitarExprSuper(Expr.Super expr) {
         int distancia = locais.get(expr);
-        ClasseComDor superclasse = (ClasseComDor)ambiente.pegarEm(distancia, "super");
+        ClasseComDor superclasse = (ClasseComDor)ambiente.pegarEm(distancia, "SUPER");
 
-        InstanciaComDor objeto = (InstanciaComDor)ambiente.pegarEm(distancia - 1, "este");
+        InstanciaComDor objeto = (InstanciaComDor)ambiente.pegarEm(distancia - 1, "ESTE");
 
         FuncaoComDor metodo = superclasse.buscarMetodo(expr.metodo.lexema);
 
@@ -142,7 +142,7 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
 
         if(inst.superclasse != null) {
             ambiente = new Environment(ambiente);
-            ambiente.definir("super", superclasse);
+            ambiente.definir("SUPER", superclasse);
         }
 
         Map<String, FuncaoComDor> metodos = new HashMap<>();
@@ -374,6 +374,65 @@ public class Interpreter implements Expr.Visitante<Object>, Inst.Visitante<Void>
         }
 
         throw new ErroTempoDeExec(expr.nome, "Apenas instancias apresentam propriedades.");
+    }
+
+    @Override
+    public Object visitarExprVetor(Expr.Vetor expr) {
+        List<Object> elementos = new ArrayList<>();
+        for (Expr elementoExpr : expr.elementos) {
+            elementos.add(avaliar(elementoExpr));
+        }
+        return elementos; // O interpretador agora trabalha com List<Object>
+    }
+
+    @Override
+    public Object visitarExprAcessoIndice(Expr.AcessoIndice expr) {
+        Object vetorObj = avaliar(expr.vetor);
+        Object indiceObj = avaliar(expr.indice);
+
+        if (!(vetorObj instanceof List)) {
+            throw new ErroTempoDeExec(expr.colchete, "So é possivel acessar indice de vetores.");
+        }
+
+        if (!(indiceObj instanceof Double)) {
+            throw new ErroTempoDeExec(expr.colchete, "O indice de um vetor deve ser um numero.");
+        }
+
+        List<Object> lista = (List<Object>) vetorObj;
+        int indice = ((Double) indiceObj).intValue();
+
+        // Verificação de limites
+        if (indice < 0 || indice >= lista.size()) {
+            throw new ErroTempoDeExec(expr.colchete, "Indice " + indice + " fora dos limites do vetor (Tamanho: " + lista.size() + ").");
+        }
+
+        return lista.get(indice);
+    }
+
+    @Override
+    public Object visitarExprAtribuicaoIndice(Expr.AtribuicaoIndice expr) {
+        Object vetorObj = avaliar(expr.alvo.vetor);
+        Object indiceObj = avaliar(expr.alvo.indice);
+        Object valor = avaliar(expr.valor);
+
+        if (!(vetorObj instanceof List)) {
+            throw new ErroTempoDeExec(expr.alvo.colchete, "So é possivel atribuir a indices de vetores.");
+        }
+
+        if (!(indiceObj instanceof Double)) {
+            throw new ErroTempoDeExec(expr.alvo.colchete, "O indice de um vetor deve ser um numero.");
+        }
+
+        List<Object> lista = (List<Object>) vetorObj;
+        int indice = ((Double) indiceObj).intValue();
+
+        // Verificação de limites
+        if (indice < 0 || indice >= lista.size()) {
+            throw new ErroTempoDeExec(expr.alvo.colchete, "Indice " + indice + " fora dos limites do vetor (Tamanho: " + lista.size() + ").");
+        }
+
+        lista.set(indice, valor);
+        return valor;
     }
 
 }

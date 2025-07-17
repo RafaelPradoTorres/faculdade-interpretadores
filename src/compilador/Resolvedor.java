@@ -28,17 +28,96 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
     private TipoClasse classeAtual = TipoClasse.NADA;
 
     void resolver(List<Inst> instancias) {
-        // Empurra o escopo “global” vazio para que
-        // escopos.peek() nunca esteja em uma pilha vazia
-        iniciarEscopo();
-
         for (Inst instancia : instancias) {
             resolver(instancia);
         }
-
-        // Fecha o escopo global (opcional)
-        finalizarEscopo();
     }
+    @Override
+    public Void visitarInstBloco(Inst.Bloco inst) {
+        iniciarEscopo();
+        resolver(inst.instrucoes);
+        finalizarEscopo();
+        return null;
+    }
+    @Override
+    public Void visitarInstClasse(Inst.Classe inst) {
+        TipoClasse classeEncapsuladora = classeAtual;
+        classeAtual = TipoClasse.CLASSE;
+
+        declarar(inst.nome);
+        definir(inst.nome);
+
+        if (inst.superclasse != null && inst.nome.lexema.equals(inst.superclasse.nome.lexema)) {
+            ComDor.erro(inst.superclasse.nome, "Uma classe nao pode herdar dela mesma.");
+        }
+
+        if (inst.superclasse != null) {
+            classeAtual = TipoClasse.SUBCLASSE;
+            resolver(inst.superclasse);
+        }
+
+        if (inst.superclasse != null) {
+            iniciarEscopo();
+            escopos.peek().put("SUPER", true);
+        }
+
+        iniciarEscopo();
+        escopos.peek().put("ESTE", true);
+
+        for (Inst.Funcao metodo : inst.metodos) {
+            TipoFuncao declaracao = TipoFuncao.METODO;
+            if (metodo.nome.lexema.equals("INICIAR")) {
+                declaracao = TipoFuncao.INICIALIZADOR;
+            }
+
+            resolverFuncao(metodo, declaracao);
+        }
+
+        finalizarEscopo();
+
+        if (inst.superclasse != null) finalizarEscopo();
+
+        classeAtual = classeEncapsuladora;
+        return null;
+    }
+    @Override
+    public Void visitarInstExpressao(Inst.Expressao inst) {
+        resolver(inst.expressao);
+        return null;
+    }
+
+    @Override
+    public Void visitarInstFuncao(Inst.Funcao inst) {
+            declarar(inst.nome);
+            definir(inst.nome);
+
+            resolverFuncao(inst, TipoFuncao.FUNCAO);
+            return null;
+    }
+
+    @Override
+    public Void visitarExprVetor(Expr.Vetor expr) {
+        for (Expr elemento : expr.elementos) {
+            resolver(elemento);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitarExprAcessoIndice(Expr.AcessoIndice expr) {
+        resolver(expr.vetor);
+        resolver(expr.indice);
+        return null;
+    }
+
+    @Override
+    public Void visitarExprAtribuicaoIndice(Expr.AtribuicaoIndice expr) {
+        resolver(expr.valor);
+        resolver(expr.alvo);
+        return null;
+    }
+
+
     private void resolver(Inst inst) {
         inst.aceita(this);
     }
@@ -60,69 +139,11 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
         funcaoAtual = funcaoEncapsuladora;
     }
 
-    @Override
-    public Void visitarInstBloco(Inst.Bloco inst) {
-        iniciarEscopo();
-        resolver(inst.instrucoes);
-        finalizarEscopo();
-        return null;
-    }
 
-    @Override
-    public Void visitarInstClasse(Inst.Classe inst) {
-        TipoClasse classeEncapsuladora = classeAtual;
-        classeAtual = TipoClasse.CLASSE;
 
-        declarar(inst.nome);
-        definir(inst.nome);
 
-        if (inst.superclasse != null && inst.nome.equals(inst.superclasse.nome.lexema)) {
-            ComDor.erro(inst.superclasse.nome, "Uma classe nao pode herdar dela mesma.");
-        }
 
-        if (inst.superclasse != null) {
-            classeAtual = TipoClasse.SUBCLASSE;
-            resolver(inst.superclasse);
-        }
 
-        if (inst.superclasse != null) {
-            iniciarEscopo();
-            escopos.peek().put("super", true);
-        }
-
-        iniciarEscopo();
-        escopos.peek().put("este", true);
-
-        for (Inst.Funcao metodo : inst.metodos) {
-            TipoFuncao declaracao = TipoFuncao.METODO;
-            if (metodo.nome.lexema.equals("init")) {
-                declaracao = TipoFuncao.INICIALIZADOR;
-            }
-
-            resolverFuncao(metodo, declaracao);
-        }
-
-        finalizarEscopo();
-
-        if (inst.superclasse != null) finalizarEscopo();
-
-        classeAtual = classeEncapsuladora;
-        return null;
-    }
-
-    @Override
-    public Void visitarInstExpressao(Inst.Expressao inst) {
-        resolver(inst.expressao);
-        return null;
-    }
-    @Override
-    public Void visitarInstFuncao(Inst.Funcao inst) {
-        declarar(inst.nome);
-        definir(inst.nome);
-
-        resolverFuncao(inst, TipoFuncao.FUNCAO);
-        return null;
-    }
     @Override
     public Void visitarInstSe(Inst.Se inst) {
         resolver(inst.condicao);
@@ -170,10 +191,10 @@ public class Resolvedor implements Expr.Visitante<Void>, Inst.Visitante<Void> {
 
     @Override
     public Void visitarExprVariavel(Expr.Variavel expr) {
-        if (escopos.peek().containsKey(expr.nome.lexema) &&
-                escopos.peek().get(expr.nome.lexema) == Boolean.FALSE) {
-            ComDor.erro(expr.nome, "Nao posso ler variavel local em seu proprio inicializador");
-        }
+//        if (escopos.peek().containsKey(expr.nome.lexema) &&
+//                escopos.peek().get(expr.nome.lexema) == Boolean.FALSE) {
+//            ComDor.erro(expr.nome, "Nao posso ler variavel local em seu proprio inicializador");
+//        }
 
         resolverLocal(expr, expr.nome);
         return null;

@@ -37,10 +37,20 @@ public class ComDor {
     private static void rodar(String fonte) {
         Scanner escaner = new Scanner(fonte);
         List<Token> tokens = escaner.escanearTokens();
+
+        escaner.imprimirTokens();
+
         Parser parser = new Parser(tokens);
         List<Inst> instrucoes = parser.parse();
 
         if (teveErro) return;
+
+        LLVMgenerator gerador = new LLVMgenerator();
+        String codigoLLVM = gerador.gerar(instrucoes);
+
+        System.out.println("--- CÓDIGO LLVM GERADO ---");
+        System.out.println(codigoLLVM);
+        System.out.println("--------------------------");
 
         Resolvedor resolvedor = new Resolvedor(interpretador);
         resolvedor.resolver(instrucoes);

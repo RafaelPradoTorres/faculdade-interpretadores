@@ -271,4 +271,6 @@ public class Scanner {
     public boolean isEOF() {
         return atual >= codigo_fonte.length();
     }
+
+
 }

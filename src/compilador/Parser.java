@@ -172,6 +172,8 @@ public class Parser {
     }
 
     private  Inst.Funcao funcao(String tipo) {
+        System.out.println("Declarando função: " + tipo);
+
         Token nome = consumir(ter_identifier, "Esperado " + tipo + " nome.");
         consumir(t_openParenthesis, "Espero '(' apos " + tipo + " nome.");
         List<Token> parametros = new ArrayList<>();
@@ -189,6 +191,7 @@ public class Parser {
 
         consumir(t_openBrace, "Esperado '{' antes " + tipo + " corpo.");
         List<Inst> corpo = bloco();
+
         return new Inst.Funcao(nome, parametros, corpo);
     }
 
@@ -216,6 +219,9 @@ public class Parser {
             } else if (expr instanceof Expr.Pegar) {
                 Expr.Pegar pegar = (Expr.Pegar)expr;
                 return new Expr.Por(pegar.objeto, pegar.nome, valor);
+            } else if (expr instanceof Expr.AcessoIndice) { // <--- ADICIONE ESTE BLOCO
+                Expr.AcessoIndice acesso = (Expr.AcessoIndice) expr;
+                return new Expr.AtribuicaoIndice(acesso, valor);
             }
 
             erro(iguais, "Atribuicao invalida.");
@@ -331,7 +337,12 @@ public class Parser {
             } else if (corresponde(t_dot)) {
                 Token nome = consumir(ter_identifier, "Esperava o nome de propriedade depois do '.'.");
                 expr = new Expr.Pegar(expr, nome);
-            }else {
+            } else if (corresponde(t_openBracket)) {
+                Token colchete = anterior();
+                Expr indice = expressao();
+                consumir(t_closeBracket, "Esperado ']' apos o indice.");
+                expr = new Expr.AcessoIndice(expr, colchete, indice);
+            } else {
                 break;
             }
         }
@@ -343,6 +354,17 @@ public class Parser {
         if (corresponde(t_false)) return new Expr.Literal(false);
         if (corresponde(t_true)) return new Expr.Literal(true);
         if (corresponde(t_null)) return new Expr.Literal(null);
+
+        if (corresponde(t_openBracket)) {
+            List<Expr> elementos = new ArrayList<>();
+            if (!checar(t_closeBracket)) {
+                do {
+                    elementos.add(expressao());
+                } while (corresponde(t_comma));
+            }
+            consumir(t_closeBracket, "Esperado ']' apos elementos do vetor.");
+            return new Expr.Vetor(elementos);
+        }
 
         if (corresponde(ter_integer)) {
             return new Expr.Literal(((String)anterior().literal).contains(".")

@@ -15,6 +15,8 @@ public class ImpressorAST implements Expr.Visitante<String> {
         return enfiarParenteses(expr.operador.lexema, expr.esquerda, expr.direita);
     }
 
+
+
     @Override
     public String visitarExprChamar(Expr.Chamar expr) {
         return null;
@@ -77,6 +79,24 @@ public class ImpressorAST implements Expr.Visitante<String> {
         construtor.append(")");
 
         return construtor.toString();
+    }
+
+    @Override
+    public String visitarExprVetor(Expr.Vetor expr) {
+        // Cria uma representação como: (vetor elemento1 elemento2 ...)
+        return enfiarParenteses("vetor", expr.elementos.toArray(new Expr[0]));
+    }
+
+    @Override
+    public String visitarExprAcessoIndice(Expr.AcessoIndice expr) {
+        // Cria uma representação como: (acesso_indice nome_do_vetor indice)
+        return enfiarParenteses("acesso_indice", expr.vetor, expr.indice);
+    }
+
+    @Override
+    public String visitarExprAtribuicaoIndice(Expr.AtribuicaoIndice expr) {
+        // Cria uma representação como: (atribui_indice alvo valor)
+        return enfiarParenteses("atribui_indice", expr.alvo, expr.valor);
     }
 
     public static void main(String[] args) {

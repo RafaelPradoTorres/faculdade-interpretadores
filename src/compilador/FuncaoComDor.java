@@ -14,7 +14,7 @@ public class FuncaoComDor implements ComDorChamavel {
 
     FuncaoComDor vincular(InstanciaComDor instancia) {
         Environment ambiente = new Environment(fechamento);
-        ambiente.definir("this", instancia);
+        ambiente.definir("ESTE", instancia);
         return new FuncaoComDor(declaracao, ambiente, isInicializador);
     }
 
@@ -39,11 +39,11 @@ public class FuncaoComDor implements ComDorChamavel {
         try {
             interpretador.executarBloco(declaracao.corpo, ambiente);
         } catch (Retornar retornarValor) {
-            if (isInicializador) return fechamento.pegarEm(0, "este");
+            if (isInicializador) return fechamento.pegarEm(0, "ESTE");
 
             return retornarValor.valor;
         }
-        if (isInicializador) return fechamento.pegarEm(0, "este");
+        if (isInicializador) return fechamento.pegarEm(0, "ESTE");
         return null;
     }
 }
