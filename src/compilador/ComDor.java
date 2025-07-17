@@ -45,6 +45,16 @@ public class ComDor {
 
         if (teveErro) return;
 
+        System.out.println("--- IMPRESSÃO DA AST (APENAS EXPRESSÕES) ---");
+        ImpressorAST impressor = new ImpressorAST();
+        for (Inst instrucao : instrucoes) {
+            if (instrucao instanceof Inst.Expressao) {
+                Expr expressaoContida = ((Inst.Expressao) instrucao).expressao;
+                System.out.println(impressor.imprimir(expressaoContida));
+            }
+        }
+        System.out.println("------------------------------------------");
+
         LLVMgenerator gerador = new LLVMgenerator();
         String codigoLLVM = gerador.gerar(instrucoes);
 
